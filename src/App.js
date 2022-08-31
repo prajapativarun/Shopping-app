@@ -3,6 +3,7 @@ import Navbar from "./Components/Navbar";
 // import Form from "./Components/Form";
 import Registration from "./Components/Registration";
 import Login from "./Components/Login";
+import HomePage from "./Components/HomePage";
 import { BrowserRouter } from "react-router-dom";
 import { Routes } from "react-router-dom";
 import { Route } from "react-router-dom";
@@ -17,6 +18,7 @@ function App() {
         <Route path="/goAgain" element={ <Login /> } />
         <Route path="/goLogin" element={ <Login /> } />
         <Route path="/goBack" element={ <Registration /> } />
+        <Route path="/Homepage" element={<HomePage/>}/>
       </Routes>
     </BrowserRouter>
     </>
