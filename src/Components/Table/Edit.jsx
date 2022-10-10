@@ -1,27 +1,25 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import Navbar from "../Navbar";
 import axios from "axios";
-import {
-  fnameRegex,
-  lnameRegex,
-  unameRegex,
-  passWordRegex,
-  emailRegex,
-} from "../Helper";
+import { useNavigate } from "react-router-dom";
+import { fnameRegex, lnameRegex, phNoRegex, emailRegex } from "../../Helper";
 
-const Registration = () => {
+const Edit = () => {
   const [firstName, setFirstName] = useState("");
   const [firstNameErr, setFirstNameErr] = useState(null);
   const [lastName, setLastName] = useState("");
   const [lastNameErr, setLastNameErr] = useState(null);
-  const [userName, setUserName] = useState("");
-  const [userNameErr, setUserNameErr] = useState(null);
   const [email, setEmail] = useState("");
   const [emailErr, setEmailErr] = useState(null);
-  const [passWord, setPassword] = useState("");
-  const [passWordErr, setPasswordErr] = useState(null);
+  const [phNo, setPhNo] = useState("");
+  const [phNoErr, setPhNoErr] = useState(null);
   const [formVaild, setFormVaild] = useState(false);
+  const [id, setId] = useState();
   const navigate = useNavigate();
+  useEffect(() => {
+    setId(JSON.parse(localStorage.getItem("id")));
+    getData();
+  }, []);
   const Validator = () => {
     let isValid = false;
     if (firstName.trim().length === 0) {
@@ -46,17 +44,6 @@ const Registration = () => {
       isValid = false;
     }
 
-    if (userName.trim().length === 0) {
-      setUserNameErr("Please Enter Username");
-      isValid = false;
-    } else if (unameRegex.test(userName)) {
-      setUserNameErr("");
-      isValid = true;
-    } else {
-      setUserNameErr("Please Enter valid Username");
-      isValid = false;
-    }
-
     if (email.trim().length === 0) {
       setEmailErr("Please Enter Email");
       isValid = false;
@@ -68,14 +55,14 @@ const Registration = () => {
       isValid = false;
     }
 
-    if (passWord.trim().length === 0) {
-      setPasswordErr("Please Enter Password");
+    if (phNo.trim().length === 0) {
+      setPhNoErr("Please Enter Number");
       isValid = false;
-    } else if (passWordRegex.test(passWord)) {
-      setPasswordErr("");
+    } else if (phNoRegex.test(phNo)) {
+      setPhNoErr("");
       isValid = true;
     } else {
-      setPasswordErr("Please Enter valid Password");
+      setPhNoErr("Please Enter valid Number");
       isValid = false;
     }
     if (isValid) {
@@ -84,46 +71,51 @@ const Registration = () => {
   };
   const submitValue = (e) => {
     Validator();
-    e.preventDefault();
     console.log(formVaild);
-
-    if (formVaild) {
-      const frmdetails = {
-        FirstName: firstName,
-        LastName: lastName,
-        UserName: userName,
-        Email: email,
-        Password: passWord,
-      };
-      console.log(frmdetails);
-      var body = {
-        fname: firstName,
-        lname: lastName,
-        username: userName,
-        email: email,
-        password: passWord,
-        avatar: "https://www.mecallapi.com/users/cat.png",
-      };
-
-      axios({
-        method: "post",
-        url: "https://www.mecallapi.com/api/users/create",
-        data: body,
+    e.preventDefault();
+    var body = {
+      id: id,
+      FirstName: firstName,
+      LastName: lastName,
+      Email: email,
+      PhoneNo: phNo,
+    };
+    console.log("body", body);
+    navigate("/table");
+    axios
+      .put(`https://632ae4cd1090510116cb07ce.mockapi.io/crud/${id}`, body)
+      .then((response) => {
+        console.log("put");
+        navigate("/table");
       })
-        .then(function (response) {
-          console.log(response);
-          navigate("/login");
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const getData = () => {
+    var id = JSON.parse(localStorage.getItem("id"));
+    console.log("UID", id);
+    axios
+      .get(`https://632ae4cd1090510116cb07ce.mockapi.io/crud/${id}`)
+      .then((response) => {
+        setFirstName(response.data.FirstName);
+        setLastName(response.data.LastName);
+        setEmail(response.data.Email);
+        setPhNo(response.data.PhoneNo);
+        console.log(response.data);
+        //   navigate("/table");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
   return (
     <>
-      <div className="Backgg">
+      <Navbar />
+      <div className="Backg">
         <div className="F">
-          <h1>SignUp</h1>
+          <h1>Edit</h1>
           <br />
           <form method="post" onSubmit={submitValue}>
             <label>First Name</label>
@@ -150,18 +142,6 @@ const Registration = () => {
               onChange={(e) => setLastName(e.target.value)}
             />
             <div className="error">{lastNameErr}</div>
-            <label>User Name</label>
-            <input
-              type="text"
-              id="username"
-              name="Username"
-              placeholder="Your id.."
-              maxLength="15"
-              required
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-            />
-            <div className="error">{userNameErr}</div>
             <label>E-mail</label>
             <input
               type="email"
@@ -173,36 +153,31 @@ const Registration = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
             <div className="error">{emailErr}</div>
-            <label>Password</label>
+            <label>PhoneNo:</label>
             <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Password"
-              maxLength="8"
+              type="text"
+              id="number"
+              name="number"
+              placeholder="PhoneNo.."
+              maxLength="10"
               required
-              value={passWord}
-              onChange={(e) => setPassword(e.target.value)}
+              value={phNo}
+              onChange={(e) => setPhNo(e.target.value)}
             />
-            <div className="error">{passWordErr}</div>
+            <div className="error">{phNoErr}</div>
             <button
               className="reg-btn"
               type="submit"
               value="Submit"
               onClick={() => submitValue()}
             >
-              Register
+              Edit
             </button>
           </form>
         </div>
-        <div className="FF">
-          <p>Already User? </p>
-          <Link to="/login">Click Here</Link>
-        </div>
-        <br />
         <br />
       </div>
     </>
   );
 };
-export default Registration;
+export default Edit;
