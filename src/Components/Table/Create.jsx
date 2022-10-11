@@ -14,6 +14,7 @@ const Create = () => {
   const [phNo, setPhNo] = useState("");
   const [phNoErr, setPhNoErr] = useState(null);
   const [formVaild, setFormVaild] = useState(false);
+  const [loading,setLoading] = useState(false);
   const navigate = useNavigate();
   const Validator = () => {
     let isValid = false;
@@ -61,10 +62,11 @@ const Create = () => {
       setFormVaild(true);
     }
   };
-  const submitValue = (e) => {
+  const submitValue = (e,index) => {
     Validator();
     e.preventDefault();
     console.log(formVaild);
+    setLoading(true);
 
     if (formVaild) {
       const frmdetails = {
@@ -83,6 +85,7 @@ const Create = () => {
         })
         .then((response) => {
           console.log(response.data);
+          setLoading(false);
           navigate("/table");
         })
         .catch((error) => {
@@ -150,8 +153,7 @@ const Create = () => {
               type="submit"
               value="Submit"
               onClick={() => submitValue()}
-            >
-              Add
+            > {loading ? <i className="fa fa-spinner fa-spin" /> : "Add"}
             </button>
           </form>
         </div>

@@ -2,15 +2,17 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 import { taskRegex } from "../Helper";
-
 const Todo = () => {
-  const [newData, setNewData] = useState([])
-  const [data,setData] = useState([]);
-  const [newTask, setNewtask] = useState("");
-  const [taskErr, setTaskErr] = useState(null);
-  const [formVaild, setFormVaild] = useState(false);
-  const [id, setId] = useState(null);
-  const [showMore, setShowMore] = useState(true);
+  const [newData, setNewData] = useState([]); //To set newdata in an Array
+  const [data, setData] = useState([]); //To set data in an Array
+  console.log("DATAAAA",data?.length)
+  const [newTask, setNewtask] = useState(""); //As a string the input data is added
+  const [taskErr, setTaskErr] = useState(null); //Display error msg for input field
+  const [formVaild, setFormVaild] = useState(false); //form validation
+  const [id, setId] = useState(null); //is use for edit
+  const [showMore, setShowMore] = useState(true); //for show more or less in the end
+  const [loading, setLoading] = useState(false); //Loader of Delete
+  const [loadinggg, setLoadinggg] = useState(false); //Loader of Add
   useEffect(() => {
     getData();
   }, []);
@@ -31,7 +33,11 @@ const Todo = () => {
     }
   };
   const submitValue = () => {
-    Validator();
+    if (Validator() === true) {
+      setLoadinggg(true);
+    } else {
+      setLoadinggg(false);
+    }
     if (formVaild) {
       const frmdetails = {
         newTask: newTask,
@@ -39,25 +45,31 @@ const Todo = () => {
       console.log(frmdetails);
     }
     if (id) {
+      setLoadinggg(true);
       axios
         .put(`https://632ae4cd1090510116cb07ce.mockapi.io/Todo/${id}`, {
           newTask: newTask,
         })
         .then(function (response) {
           console.log(response.data);
+          setLoadinggg(false);
           getData();
+          setNewtask("");
         })
         .catch(function (error) {
           console.log(error);
         });
     } else {
+      setLoadinggg(true);
       axios
         .post(`https://632ae4cd1090510116cb07ce.mockapi.io/Todo`, {
           newTask: newTask,
         })
         .then(function (response) {
           console.log(response.data);
+          setLoadinggg(false);
           getData();
+          setNewtask("");
         })
         .catch(function (error) {
           console.log(error);
@@ -70,14 +82,17 @@ const Todo = () => {
       .then((response) => {
         // console.log("==>>", response.data);
         setData(response.data);
-       const view = response.data.slice(0 ,5);
-       setNewData(view)
+        const view = response.data.slice(0, 5);
+        setNewData(view);
       });
   };
-  const deleteData = (id) => {
+  const deleteData = (id, index) => {
+    setLoading(index);
+    console.log("ind", index);
     axios
       .delete(`https://632ae4cd1090510116cb07ce.mockapi.io/Todo/${id}`)
       .then((response) => {
+        setLoading(false);
         console.log("deleted");
         getData();
       });
@@ -92,13 +107,25 @@ const Todo = () => {
       });
   };
   const editData = (id) => {
+    const time = `${current.toLocaleTimeString()}`;
+    console.log("ID", date);
+    console.log("DATE", time);
+    axios
+      .put(`https://632ae4cd1090510116cb07ce.mockapi.io/Todo/${id}`, {
+        time: time,
+        date: date,
+      })
+      .then((res) => {
+        console.log(res);
+      });
     axios
       .get(`https://632ae4cd1090510116cb07ce.mockapi.io/Todo/${id}`, {
         newTask: newTask,
       })
       .then((res) => {
         setNewtask(res?.data?.newTask);
-        setId(res.data.id)
+        setId(res.data.id);
+        console.log(res.data.time);
         console.log("edit", res.data);
       });
   };
@@ -106,7 +133,7 @@ const Todo = () => {
   const date = `${current.getDate()}/${
     current.getMonth() + 1
   }/${current.getFullYear()}`;
-  const Time = `${current.toLocaleTimeString()}`;
+  
   return (
     <>
       <Navbar />
@@ -130,8 +157,13 @@ const Todo = () => {
                     type="submit"
                     className="btn btn-info btn-lg"
                     onClick={() => submitValue()}
+                    disabled={!newTask}
                   >
-                    Add
+                    {loadinggg ? (
+                      <i className="fa fa-spinner fa-spin" />
+                    ) : (
+                      "Add"
+                    )}
                   </button>
                 </div>
               </div>
@@ -155,99 +187,114 @@ const Todo = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {showMore?newData.map((item, index) => {
-                    return (
-                      <tr key={index}>
-                        <th scope="row">{item.id}</th>
-                        <td>{item?.newTask}</td>
-                        <td>
-                          <label className="switch">
-                            <input
-                              className="switch-input"
-                              type="checkbox"
-                              defaultChecked={item.isCom}
-                              onChange={(e) =>
-                                handleTask(e.target.checked, item.id)
-                              }
-                            />
-                            <span
-                              className="switch-label"
-                              data-on="Completed"
-                              data-off="Pending"
-                            ></span>
-                            <span className="switch-handle"></span>
-                          </label>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={(e) => editData(item.id)}
-                          >
-                            Edit
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className="btn btn-danger"
-                            onClick={() => deleteData(item.id)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                        <td>{Time}</td>
-                        <td>{date}</td>
-                      </tr>
-                    );}):data.map((item, index) => {
-                      return (
-                        <tr key={index}>
-                          <th scope="row">{item.id}</th>
-                          <td>{item?.newTask}</td>
-                          <td>
-                            <label className="switch">
-                              <input
-                                className="switch-input"
-                                type="checkbox"
-                                defaultChecked={item.isCom}
-                                onChange={(e) =>
-                                  handleTask(e.target.checked, item.id)
-                                }
-                              />
-                              <span
-                                className="switch-label"
-                                data-on="Completed"
-                                data-off="Pending"
-                              ></span>
-                              <span className="switch-handle"></span>
-                            </label>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={(e) => editData(item.id)}
-                            >
-                              Edit
-                            </button>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="btn btn-danger"
-                              onClick={() => deleteData(item.id)}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                          <td>{Time}</td>
-                          <td>{date}</td>
-                        </tr>
-                      );})
-                  }
+                  { data.length > 0 
+                  ? (showMore
+                    ? newData.map((item, index) => {
+                        return (
+                          <tr key={index}>
+                            <th scope="row">{item.id}</th>
+                            <td>{item?.newTask}</td>
+                            <td>
+                              <label className="switch">
+                                <input
+                                  className="switch-input"
+                                  type="checkbox"
+                                  defaultChecked={item.isCom}
+                                  onChange={(e) =>
+                                    handleTask(e.target.checked, item.id)
+                                  }
+                                />
+                                <span
+                                  className="switch-label"
+                                  data-on="Completed"
+                                  data-off="Pending"
+                                ></span>
+                                <span className="switch-handle"></span>
+                              </label>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={(e) => editData(item.id)}
+                              >
+                                Edit
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={() => deleteData(item.id, index)}
+                              >
+                                {loading === index && (
+                                  <i className="fa fa-spinner fa-spin" />
+                                )}
+                                Delete
+                              </button>
+                            </td>
+                            <td>{item.time}</td>
+                            <td>{item.date}</td>
+                          </tr>
+                        );
+                      })
+                    : (data.map((item, index) => {
+                        return (
+                          <tr key={index}>
+                            <th scope="row">{item.id}</th>
+                            <td>{item?.newTask}</td>
+                            <td>
+                              <label className="switch">
+                                <input
+                                  className="switch-input"
+                                  type="checkbox"
+                                  defaultChecked={item.isCom}
+                                  onChange={(e) =>
+                                    handleTask(e.target.checked, item.id)
+                                  }
+                                />
+                                <span
+                                  className="switch-label"
+                                  data-on="Completed"
+                                  data-off="Pending"
+                                ></span>
+                                <span className="switch-handle"></span>
+                              </label>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={(e) => editData(item.id)}
+                              >
+                                Edit
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={() => deleteData(item.id, index)}
+                              >
+                                {loading === index && (
+                                  <i className="fa fa-spinner fa-spin" />
+                                )}
+                                Delete
+                              </button>
+                            </td>
+                            <td>{item.time}</td>
+                            <td>{item.date}</td>
+                          </tr>
+                        )}))
+                      ) : <div><h3>No data Found</h3></div>
+                    }
                 </tbody>
                 <br />
-                <button type="button" onClick={() => setShowMore(!showMore)} className="btn btn-success">
+                <button
+                  type="button"
+                  onClick={() => setShowMore(!showMore)}
+                  className="btn btn-success"
+                >
                   {showMore ? "View All" : "View Less"}
                 </button>
               </table>
@@ -262,5 +309,4 @@ const Todo = () => {
     </>
   );
 };
-export default Todo;
-//✔
+export default Todo; //✔

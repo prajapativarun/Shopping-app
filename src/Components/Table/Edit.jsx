@@ -14,6 +14,7 @@ const Edit = () => {
   const [phNo, setPhNo] = useState("");
   const [phNoErr, setPhNoErr] = useState(null);
   const [formVaild, setFormVaild] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [id, setId] = useState();
   const navigate = useNavigate();
   useEffect(() => {
@@ -71,6 +72,8 @@ const Edit = () => {
   };
   const submitValue = (e) => {
     Validator();
+    setLoading(true);
+
     console.log(formVaild);
     e.preventDefault();
     var body = {
@@ -86,6 +89,7 @@ const Edit = () => {
       .put(`https://632ae4cd1090510116cb07ce.mockapi.io/crud/${id}`, body)
       .then((response) => {
         console.log("put");
+        setLoading(false);
         navigate("/table");
       })
       .catch((error) => {
@@ -104,7 +108,6 @@ const Edit = () => {
         setEmail(response.data.Email);
         setPhNo(response.data.PhoneNo);
         console.log(response.data);
-        //   navigate("/table");
       })
       .catch((error) => {
         console.log(error);
@@ -171,7 +174,7 @@ const Edit = () => {
               value="Submit"
               onClick={() => submitValue()}
             >
-              Edit
+              {loading ? <i className="fa fa-spinner fa-spin" /> : "Edit"}
             </button>
           </form>
         </div>

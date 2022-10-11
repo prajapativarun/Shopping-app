@@ -6,6 +6,7 @@ import ReactPaginate from "react-paginate";
 
 const Table = () => {
   const [newData, setNewData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [pageNumber, setPageNumber] = useState(0);
   const usersPerPage = 5;
@@ -33,8 +34,9 @@ const Table = () => {
             <button
               type="button"
               className="btn btn-danger"
-              onClick={() => deleteData(item.Id)}
+              onClick={() => deleteData(item.Id, index)}
             >
+              {loading === index && <i className="fa fa-spinner fa-spin" />}
               Delete
             </button>
           </td>
@@ -58,11 +60,13 @@ const Table = () => {
         setNewData(response.data);
       });
   };
-  const deleteData = (id) => {
+  const deleteData = (id, index) => {
+    setLoading(index);
     axios
       .delete(`https://632ae4cd1090510116cb07ce.mockapi.io/crud/${id}`)
       .then(function (response) {
         console.log("deleted");
+        setLoading(false);
         getData();
       });
   };
@@ -98,7 +102,15 @@ const Table = () => {
                     <th scope="col">DELETE</th>
                   </tr>
                 </thead>
-                <tbody>{displayUsers}</tbody>
+                <tbody>
+                  {newData.length > 0 ? (
+                    displayUsers
+                  ) : (
+                    <div>
+                      <h3>No Data Found</h3>
+                    </div>
+                  )}
+                </tbody>
               </table>
               <ReactPaginate
                 breakLabel="..."
